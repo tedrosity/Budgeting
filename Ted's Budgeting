@@ -1,0 +1,127 @@
+#Budgeting 
+import json
+
+class Budget:
+    # A class to represent a budget.
+
+    def __init__(self, initial_budget):
+        # Initialize budget and expenses.
+        self.budget = initial_budget
+        self.total_added = 0  # Initialize total amount added to the budget
+        self.expenses = []
+
+    def add_expense(self, amount, description, category):
+        # Add an expense with a category.
+        self.expenses.append({"description": description, "amount": amount, "category": category})
+        print(f"Added Expense: {description}, Amount: {amount}, Category: {category}")
+
+    def get_total_expenses(self):
+        # Calculate total expenses.
+        return sum(expense["amount"] for expense in self.expenses)
+
+    def get_balance(self):
+        # Calculate remaining budget.
+        return self.budget - self.get_total_expenses()
+
+    def show_budget_details(self):
+        # Print budget details.
+        print(f"Total Budget: {self.budget}")
+        print(f"Total Added to Budget: {self.total_added}")  # Print the total amount added to the budget
+        print("Expenses:")
+        for expense in self.expenses:
+            print(f"- {expense['description']}: {expense['amount']}, Category: {expense['category']}")
+        print(f"Total Spent: {self.get_total_expenses()}")
+        print(f"Remaining Budget: {self.get_balance()}")
+
+    def add_to_budget(self, amount):
+        # Add an amount to the budget.
+        self.budget += amount
+        self.total_added += amount  # Update total amount added
+        print(f"Added {amount} to the budget. New budget is {self.budget}.")
+
+    def show_total_added(self):
+        # Print the total amount added to the budget.
+        print(f"Total amount added to the budget: {self.total_added}")
+
+    @staticmethod
+    def load_budget_data(filepath):
+        # Load budget data from a JSON file.
+        try:
+            with open(filepath, 'r') as f:
+                data = json.load(f)
+            initial_budget = data.get('initial_budget', 0)
+            expenses = data.get('expenses', [])
+        except FileNotFoundError:
+            # If the file doesn't exist, start with an empty budget and no expenses.
+            initial_budget = 0
+            expenses = []
+        return initial_budget, expenses
+
+    @staticmethod
+    def save_budget_details(filepath, budget):
+        # Save budget details to a JSON file.
+        with open(filepath, 'w') as f:
+            json.dump({
+                'initial_budget': budget.budget,
+                'expenses': budget.expenses
+            }, f)
+
+def main():
+    # Run the budgeting program.
+    print("Welcome to Ted's Budgeting") 
+    filepath = 'budget_data.json' # Define the path to your JSON file
+    initial_budget, expenses = Budget.load_budget_data(filepath)
+    if initial_budget == 0:
+        initial_budget = float(input("Please enter your initial budget: "))
+    budget = Budget(initial_budget)
+    budget.expenses = expenses
+
+    categories = ["food", "transport", "entertainment", "other"]  # Define your categories here
+
+    while True:
+        print("\nWhat would you like to do?")
+        print("1. Add an expense")
+        print("2. Add to budget")
+        print("3. Show budget details")
+        print("4. Exit")
+        choice = input("Enter your choice (1/2/3/4): ")
+        
+        if choice == "1":
+            description = input("What is your expense? ")
+            category = input("What category does this expense fall under? ")
+            while category not in categories:
+                print("Invalid category. Please enter one of the following categories: ", categories)
+                category = input("What category does this expense fall under? ")
+            while True:
+                try:
+                    amount = float(input("Enter expense amount "))
+                    if amount <= 0:
+                        print("Invalid input. Please enter a positive number.")
+                        continue
+                    break
+                except ValueError:
+                    print("Invalid input. Please enter a number.")
+            budget.add_expense(amount, description, category)
+        elif choice == "2":
+            while True:
+                try:
+                    amount = float(input("Enter amount to add to budget "))
+                    if amount <= 0:
+                        print("Invalid input. Please enter a positive number.")
+                        continue
+                    break
+                except ValueError:
+                    print("Invalid input. Please enter a number.")
+            budget.add_to_budget(amount)
+            budget.show_total_added()  # Show the total amount added to the budget
+        elif choice == "3":
+            budget.show_budget_details()
+        elif choice == "4":
+            Budget.save_budget_details(filepath, budget)
+            print("Exiting Ted's Budgeting. Thank you!")
+            break
+        else:
+            print ("Invalid Response.  Try again")
+
+if __name__ == "__main__":
+    main()
